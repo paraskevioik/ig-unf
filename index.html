@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Instagram Unfollowers Checker</title>
+  <style>
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 700px; margin: 2em auto; line-height: 1.6; color: #333; }
+    h1 { text-align: center; color: #931297; }
+    label, button { display: block; margin: .75em 0; }
+    input[type="file"] { border: 1px solid #ccc; padding: 6px; border-radius: 4px; }
+    button { background-color: #e683c8; color: #fff; border: none; padding: 10px 20px; font-size: 1em; border-radius: 4px; cursor: pointer; }
+    button:hover { background-color: #cf6a80; }
+    #resultHeader { margin-top: 1.5em; font-size: 1.2em; color: #e56399; }
+    ul { list-style: disc inside; padding-left: 1em; }
+    section#instructions { margin-top: 2em; border-top: 1px solid #ddd; padding-top: 1.5em; }
+    section#instructions h2 { color: #b43a69; }
+    section#instructions ol { padding-left: 1.2em; }
+    footer { margin-top: 3em; text-align: center; font-size: 0.9em; color: #9e7ca7; }
+  </style>
+</head>
+<body>
+  <h1>Instagram Unfollowers Checker</h1>
+
+  <label>
+    Choose your <strong>following</strong> JSON file:
+    <input type="file" id="followingFile" accept=".json">
+  </label>
+  <label>
+    Choose your <strong>followers</strong> JSON file:
+    <input type="file" id="followersFile" accept=".json">
+  </label>
+  <button id="runBtn">Check</button>
+
+  <h2 id="resultHeader" style="display:none"></h2>
+  <ul id="resultList"></ul>
+
+  <section id="instructions">
+    <h2>How to Use</h2>
+    <ol>
+      <li>Go to instagram on your phone → Accounts Centre → Your information and permissions → Download your information → Download or transfer information → Some of your information → Followers and following & click next → Download to device → Select Date range: "All time" and  Format: "JSON" → Create files.</li>
+      <li>Your data should be ready for download in a few minutes. After it is done, unzip and find the <em>following</em> and <em>followers_1</em> JSON files.</li>
+      <li>Click Choose File for each export, and select the correct JSON.</li>
+      <li>Click Check Unfollowers and see your list instantly.</li>
+      <h2>Data is only used temporarily, no file is saved. </h2>
+    </ol>
+  </section>
+
+  <footer>
+    &copy; 2025 Paraskevi Oikonomou & ChatGPT
+  </footer>
+
+  <script>
+    function extractUsernames(data, key) {
+      const entries = Array.isArray(data) ? data : (data[key] || []);
+      const names = new Set();
+      entries.forEach(entry => {
+        (entry.string_list_data || []).forEach(item => {
+          if (item.value) names.add(item.value);
+        });
+      });
+      return names;
+    }
+
+    document.getElementById('runBtn').addEventListener('click', () => {
+      const f1 = document.getElementById('followingFile').files[0];
+      const f2 = document.getElementById('followersFile').files[0];
+      if (!f1 || !f2) {
+        alert('Please select BOTH files before checking.');
+        return;
+      }
+
+      Promise.all([f1.text(), f2.text()]).then(([txt1, txt2]) => {
+        let followData, followerData;
+        try {
+          followData = JSON.parse(txt1);
+          followerData = JSON.parse(txt2);
+        } catch (e) {
+          alert('Invalid JSON detected. Please ensure you selected the correct files.');
+          return;
+        }
+
+        const following = extractUsernames(followData, 'relationships_following');
+        const followers = extractUsernames(followerData, 'relationships_followed_by');
+        const unfollowers = [...following].filter(u => !followers.has(u)).sort();
+
+        const header = document.getElementById('resultHeader');
+        const list = document.getElementById('resultList');
+        header.style.display = '';
+        header.textContent = `🎯 You have ${unfollowers.length} unfollower(s) – time to trim your list!`;
+        list.innerHTML = unfollowers.map(u => `<li>${u}</li>`).join('');
+      });
+    });
+  </script>
+</body>
+</html>
+
