@@ -87,7 +87,7 @@
         const header = document.getElementById('resultHeader');
         const list = document.getElementById('resultList');
         header.style.display = '';
-        header.textContent = `These accounts DO NOT follow you back.`;
+        header.textContent = `These accounts DO NOT follow you back:`;
         list.innerHTML = unfollowers.map(u => `<li>${u}</li>`).join('');
       });
     });
